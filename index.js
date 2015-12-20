@@ -11,8 +11,8 @@ var Slack = require('slack-node');
 var slack = new Slack();
 slack.setWebhook(process.env.SLACK_WEBHOOK_URL);
 
-exports.handler = function(event, context) {
-
+//exports.handler = function(event, context) {
+/*
   var bucket = 'telusdigital-lambda';
   var key = 'ssl-check/event.json';
 
@@ -24,18 +24,33 @@ exports.handler = function(event, context) {
     } else {
 
       var sites = JSON.parse(data.Body.toString());
+*/
+      var fs = require('fs');
+      var sites = JSON.parse(fs.readFileSync('event.json', 'utf8'));
       var results_array = [];
 
       for (link in sites){
         var promise = new Promise(function(resolve, reject) {
           (function(url) {
-            https.request({host: url, port: 443, method: "GET"}, function(res) {
-              var cert = res.connection.getPeerCertificate().valid_to;
+            https_options = {
+              host: url,
+              port: 443,
+              method: "GET"
+            };
+            https.request(https_options, function(res) {
+              console.log (url);
+
+              var cert      = res.connection.getPeerCertificate().valid_to;
               var cert_date = new Date(cert);
-              var date_now = new Date();
-              var days = days_between(cert_date, date_now);
-              var result = url + " will expire in " + days  + " days.\n";
+              var date_now  = new Date();
+              var days      = days_between(cert_date, date_now);
+              var result    = url + " will expire in " + days  + " days.\n";
+
+              console.log ((days <= 30 ? "++" : "") + result);
               resolve(result);
+            }).on('error', function (error) {
+              console.log ("error: " + error);
+              resolve ("error: " + error);
             }).end();
           })(sites[link]);
         });
@@ -43,8 +58,10 @@ exports.handler = function(event, context) {
       }
 
       Promise.all(results_array).then(function(results) {
+        console.log (results.join(""));
+
         slack.webhook({
-          channel: '#' + process.env.SLACK_CHANNEL,
+          channel: process.env.SLACK_CHANNEL,
           username: 'SSL Watch',
           text: results.join(""),
 
@@ -55,9 +72,9 @@ exports.handler = function(event, context) {
           }
         });
       });
-    }
-  });
-};
+//    }
+//  });
+//};
 
 function days_between(date1, date2) {
   // The number of milliseconds in one day
