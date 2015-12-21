@@ -11,16 +11,16 @@ var Slack = require('slack-node');
 var slack = new Slack();
 slack.setWebhook(process.env.SLACK_WEBHOOK_URL);
 
-var audit_enter        = 0,
-    audit_exit         = 0,
-    audit_success      = 0,
-    audit_errors       = 0,
-    audit_expire_soon  = 0,
-    isVerbose          = false;
-
 exports.handler = function(event, context) {
   var bucket = 'telusdigital-lambda-staging';
   var key    = 'ssl-check/event.json';
+
+  var audit_enter        = 0,
+      audit_exit         = 0,
+      audit_success      = 0,
+      audit_errors       = 0,
+      audit_expire_soon  = 0,
+      isVerbose          = false;
 
   s3.getObject({Bucket: bucket, Key: key}, function(err, data) {
     if (err) {
