@@ -22,16 +22,16 @@ function displayStats(url, status, message) {
   var delta               = success_plus_errors - sites.length;
   var audit_status        = (enter == exit && delta == 0) ? "Pass" : "Fail"
 
-  console.log (                                    "      >> " + url);
-  console.log (                                    "  enter: " + enter);
-  console.log (                                    "   exit: " + exit);
-  console.log ((status == "success" ? "*" : " ") + "success: " + success);
-  console.log ((status == "errors"  ? "*" : " ") + " errors: " + errors);
-  console.log (                                    "    s+e: " + success_plus_errors);
-  console.log (                                    "  total: " + sites.length);
-  console.log (                                    "  delta: " + delta);
-  console.log (                                    "message: " + message)
-  console.log (                                    "  audit: " + audit_status);
+  console.log (                                    "       >> " + url);
+  console.log (                                    "   enter: " + enter);
+  console.log (                                    "    exit: " + exit);
+  console.log ((status == "success" ? "*" : " ") +  "success: " + success);
+  console.log ((status == "errors"  ? "*" : " ") +  " errors: " + errors);
+  console.log (                                    "     s+e: " + success_plus_errors);
+  console.log (                                    "   total: " + sites.length);
+  console.log (                                    "   delta: " + delta);
+  console.log (                                    " message: " + message)
+  console.log (                                    "   audit: " + audit_status);
   console.log (                                    "---");
 }
 
@@ -72,17 +72,14 @@ function displayStats(url, status, message) {
             var cert_date = new Date(cert);
             var date_now  = new Date();
             var days      = days_between(cert_date, date_now);
-            var result    = { "url": url, "days": days };
             var result    = days <= expire_in ? (url + " expires in " + days + "\n") : "";
-//            var result    = url + " expires in " + days + "\n";
 
             success++;
             if (isVerbose) displayStats(url, "success", result);
 
             resolve(result);
           }).on('error', function (error) {
-            var message = { "url": url, "error": error };
-            var message = "error: " + error + "\n";
+            var message = "error: " + url + ": " + error + "\n";
 
             errors++;
             if (isVerbose) displayStats(url, "error", error);
