@@ -1,10 +1,10 @@
 // https promise calls
-var https = require('https');
+var https   = require('https');
 var Promise = require("bluebird");
 
 // interact with s3
 var aws = require('aws-sdk');
-var s3 = new aws.S3({apiVersion: '2006-03-01'});
+var s3  = new aws.S3({apiVersion: '2006-03-01'});
 
 // interact with slack
 var Slack = require('slack-node');
@@ -42,12 +42,12 @@ function displayStats(title, status, message) {
 
 exports.handler = function(event, context) {
   var bucket = 'telusdigital-lambda';
-  var key = 'ssl-check/event.json';
+  var key    = 'ssl-check/event.json';
 
   s3.getObject({Bucket: bucket, Key: key}, function(err, data) {
     if (err) {
       console.log("Error getting object " + key + " from bucket " + bucket +
-          ". Make sure they exist and your bucket is in the same region as this function.");
+                  ". Make sure they exist and your bucket is in the same region as this function.");
       context.fail ("Error getting file: " + err)
     } else {
       var fs = require('fs');
