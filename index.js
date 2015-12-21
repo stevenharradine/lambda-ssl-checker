@@ -12,26 +12,28 @@ var slack = new Slack();
 slack.setWebhook(process.env.SLACK_WEBHOOK_URL);
 
 
-var enter   = 0,
-    exit    = 0,
-    success = 0,
-    errors  = 0,
-    isVerbose = true;
-function displayStats(url, status, message) {
+var enter        = 0,
+    exit         = 0,
+    success      = 0,
+    errors       = 0,
+    expire_soon  = 0,
+    isVerbose    = true;
+function displayStats(title, status, message) {
   var success_plus_errors = errors + success;
   var delta               = success_plus_errors - sites.length;
   var audit_status        = (enter == exit && delta == 0) ? "Pass" : "Fail"
 
-  console.log (                                    "       >> " + url);
-  console.log (                                    "   enter: " + enter);
-  console.log (                                    "    exit: " + exit);
-  console.log ((status == "success" ? "*" : " ") +  "success: " + success);
-  console.log ((status == "errors"  ? "*" : " ") +  " errors: " + errors);
-  console.log (                                    "     s+e: " + success_plus_errors);
-  console.log (                                    "   total: " + sites.length);
-  console.log (                                    "   delta: " + delta);
-  console.log (                                    " message: " + message)
-  console.log (                                    "   audit: " + audit_status);
+  console.log (                                    "          >> " + title);
+  console.log (                                    "      enter: " + enter);
+  console.log (                                    "       exit: " + exit);
+  console.log ((status == "success" ? "*" : " ") +  "   success: " + success);
+  console.log ((status == "errors"  ? "*" : " ") +  "    errors: " + errors);
+  console.log (                                    "        s+e: " + success_plus_errors);
+  console.log (                                    "      total: " + sites.length);
+  console.log (                                    "      delta: " + delta);
+  console.log (                                    "    message: " + message)
+  console.log (                                    "expire soon: " + expire_soon)
+  console.log (                                    "      audit: " + audit_status);
   console.log (                                    "---");
 }
 
@@ -72,7 +74,13 @@ function displayStats(url, status, message) {
             var cert_date = new Date(cert);
             var date_now  = new Date();
             var days      = days_between(cert_date, date_now);
-            var result    = days <= expire_in ? (url + " expires in " + days + "\n") : "";
+            var result    = "";
+
+            if (days <= expire_in) {
+              result = url + " expires in " + days + "\n";
+
+              expire_soon++;
+            }
 
             success++;
             if (isVerbose) displayStats(url, "success", result);
