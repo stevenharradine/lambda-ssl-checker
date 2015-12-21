@@ -11,6 +11,30 @@ var Slack = require('slack-node');
 var slack = new Slack();
 slack.setWebhook(process.env.SLACK_WEBHOOK_URL);
 
+
+var enter   = 0,
+    exit    = 0,
+    success = 0,
+    errors  = 0,
+    isVerbose = true;
+function displayStats(url, status, message) {
+  var success_plus_errors = errors + success;
+  var delta               = success_plus_errors - sites.length;
+  var audit_status        = (enter == exit && delta == 0) ? "Pass" : "Fail"
+
+  console.log (                                    "      >> " + url);
+  console.log (                                    "  enter: " + enter);
+  console.log (                                    "   exit: " + exit);
+  console.log ((status == "success" ? "*" : " ") + "success: " + success);
+  console.log ((status == "errors"  ? "*" : " ") + " errors: " + errors);
+  console.log (                                    "    s+e: " + success_plus_errors);
+  console.log (                                    "  total: " + sites.length);
+  console.log (                                    "  delta: " + delta);
+  console.log (                                    "message: " + message)
+  console.log (                                    "  audit: " + audit_status);
+  console.log (                                    "---");
+}
+
 //exports.handler = function(event, context) {
 /*
   var bucket = 'telusdigital-lambda';
@@ -26,42 +50,56 @@ slack.setWebhook(process.env.SLACK_WEBHOOK_URL);
       var sites = JSON.parse(data.Body.toString());
 */
       var fs = require('fs');
-      var sites = JSON.parse(fs.readFileSync('event.json', 'utf8'));
+      var input = JSON.parse(fs.readFileSync('event.json', 'utf8'));
+      var sites = input.sites;
+      var expire_in = input.expire_in;
       var results_array = [];
 
       for (link in sites){
         var promise = new Promise(function(resolve, reject) {
-          (function(url) {
-            https_options = {
-              host: url,
-              port: 443,
-              method: "GET"
-            };
+          var url = sites[link];
 
-            https.request(https_options, function(res) {
-              console.log (url);
+          https_options = {
+            host: url,
+            port: 443,
+            method: "GET"
+          };
 
-              var cert      = res.connection.getPeerCertificate().valid_to;
-              var cert_date = new Date(cert);
-              var date_now  = new Date();
-              var days      = days_between(cert_date, date_now);
-              var result    = url + " will expire in " + days  + " days.\n";
+          https.request(https_options, function(res) {
+            enter++;
 
-              console.log (result);
-              resolve(result);
-            }).on('error', function (error) {
-              var message = "error: " + error;
+            var cert      = res.connection.getPeerCertificate().valid_to;
+            var cert_date = new Date(cert);
+            var date_now  = new Date();
+            var days      = days_between(cert_date, date_now);
+            var result    = { "url": url, "days": days };
+            var result    = days <= expire_in ? (url + " expires in " + days + "\n") : "";
+            var result    = url + " expires in " + days + "\n";
 
-              console.log (message);
-              resolve (message);
-            }).end();
-          })(sites[link]);
+            success++;
+            if (isVerbose) displayStats(url, "success", result);
+
+            resolve(result);
+          }).on('error', function (error) {
+            var message = { "url": url, "error": error };
+            var message = "error: " + error + "\n";
+
+            errors++;
+            if (isVerbose) displayStats(url, "error", error);
+
+            resolve (message);
+          }).end(function () {
+            exit++;
+          });
         });
+
         results_array.push(promise);
       }
 
+
       Promise.all(results_array).then(function(results) {
         console.log (results.join(""));
+        displayStats("Status", null, null);
 
         slack.webhook({
           channel: process.env.SLACK_CHANNEL,
