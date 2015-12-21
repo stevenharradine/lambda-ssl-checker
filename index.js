@@ -103,8 +103,8 @@ function displayStats(title, status, message) {
 
 
       Promise.all(results_array).then(function(results) {
-        console.log (results.join(""));
         displayStats("Status", null, null);
+        console.log (results.join(""));
 
         slack.webhook({
           channel: process.env.SLACK_CHANNEL,
