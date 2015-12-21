@@ -11,7 +11,6 @@ var Slack = require('slack-node');
 var slack = new Slack();
 slack.setWebhook(process.env.SLACK_WEBHOOK_URL);
 
-
 var audit_enter        = 0,
     audit_exit         = 0,
     audit_success      = 0,
