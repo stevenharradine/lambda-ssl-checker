@@ -12,27 +12,27 @@ var slack = new Slack();
 slack.setWebhook(process.env.SLACK_WEBHOOK_URL);
 
 
-var enter        = 0,
-    exit         = 0,
-    success      = 0,
-    errors       = 0,
-    expire_soon  = 0,
-    isVerbose    = true;
+var audit_enter        = 0,
+    audit_exit         = 0,
+    audit_success      = 0,
+    audit_errors       = 0,
+    audit_expire_soon  = 0,
+    isVerbose          = true;
 function displayStats(title, status, message) {
-  var success_plus_errors = errors + success;
+  var success_plus_errors = audit_errors + audit_success;
   var delta               = success_plus_errors - sites.length;
-  var audit_status        = (enter == exit && delta == 0) ? "Pass" : "Fail"
+  var audit_status        = (audit_enter == audit_exit && delta == 0) ? "Pass" : "Fail"
 
   console.log (                                    "          >> " + title);
-  console.log (                                    "      enter: " + enter);
-  console.log (                                    "       exit: " + exit);
-  console.log ((status == "success" ? "*" : " ") +  "   success: " + success);
-  console.log ((status == "errors"  ? "*" : " ") +  "    errors: " + errors);
+  console.log (                                    "      enter: " + audit_enter);
+  console.log (                                    "       exit: " + audit_exit);
+  console.log ((status == "success" ? "*" : " ") +  "   success: " + audit_success);
+  console.log ((status == "errors"  ? "*" : " ") +  "    errors: " + audit_errors);
   console.log (                                    "        s+e: " + success_plus_errors);
   console.log (                                    "      total: " + sites.length);
   console.log (                                    "      delta: " + delta);
   console.log (                                    "    message: " + message)
-  console.log (                                    "expire soon: " + expire_soon)
+  console.log (                                    "expire soon: " + audit_expire_soon)
   console.log (                                    "      audit: " + audit_status);
   console.log (                                    "---");
 }
@@ -68,7 +68,7 @@ function displayStats(title, status, message) {
           };
 
           https.request(https_options, function(res) {
-            enter++;
+            audit_enter++;
 
             var cert      = res.connection.getPeerCertificate().valid_to;
             var cert_date = new Date(cert);
@@ -79,22 +79,22 @@ function displayStats(title, status, message) {
             if (days <= expire_in) {
               result = url + " expires in " + days + "\n";
 
-              expire_soon++;
+              audit_expire_soon++;
             }
 
-            success++;
+            audit_success++;
             if (isVerbose) displayStats(url, "success", result);
 
             resolve(result);
           }).on('error', function (error) {
             var message = "error: " + url + ": " + error + "\n";
 
-            errors++;
+            audit_errors++;
             if (isVerbose) displayStats(url, "error", error);
 
             resolve (message);
           }).end(function () {
-            exit++;
+            audit_exit++;
           });
         });
 
