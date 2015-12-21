@@ -74,7 +74,7 @@ function displayStats(url, status, message) {
             var days      = days_between(cert_date, date_now);
             var result    = { "url": url, "days": days };
             var result    = days <= expire_in ? (url + " expires in " + days + "\n") : "";
-            var result    = url + " expires in " + days + "\n";
+//            var result    = url + " expires in " + days + "\n";
 
             success++;
             if (isVerbose) displayStats(url, "success", result);
