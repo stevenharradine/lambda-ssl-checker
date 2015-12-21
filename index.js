@@ -22,19 +22,22 @@ function displayStats(title, status, message) {
   var success_plus_errors = audit_errors + audit_success;
   var delta               = success_plus_errors - sites.length;
   var audit_status        = (audit_enter == audit_exit && delta == 0) ? "Pass" : "Fail"
+  var buffered_output     = ""
 
-  console.log (                                    "          >> " + title);
-  console.log (                                    "      enter: " + audit_enter);
-  console.log (                                    "       exit: " + audit_exit);
-  console.log ((status == "success" ? "*" : " ") +  "   success: " + audit_success);
-  console.log ((status == "errors"  ? "*" : " ") +  "    errors: " + audit_errors);
-  console.log (                                    "        s+e: " + success_plus_errors);
-  console.log (                                    "      total: " + sites.length);
-  console.log (                                    "      delta: " + delta);
-  console.log (                                    "    message: " + message)
-  console.log (                                    "expire soon: " + audit_expire_soon)
-  console.log (                                    "      audit: " + audit_status);
-  console.log (                                    "---");
+  buffered_output +=                                     "          >> " + title + "\n";
+  buffered_output +=                                     "      enter: " + audit_enter + "\n";
+  buffered_output +=                                     "       exit: " + audit_exit + "\n";
+  buffered_output += (status == "success" ? "*" : " ") +  "   success: " + audit_success + "\n";
+  buffered_output += (status == "errors"  ? "*" : " ") +  "    errors: " + audit_errors + "\n";
+  buffered_output +=                                     "        s+e: " + success_plus_errors + "\n";
+  buffered_output +=                                     "      total: " + sites.length + "\n";
+  buffered_output +=                                     "      delta: " + delta + "\n";
+  buffered_output +=                                     "    message: " + message + "\n";
+  buffered_output +=                                     "expire soon: " + audit_expire_soon + "\n";
+  buffered_output +=                                     "      audit: " + audit_status + "\n";
+  buffered_output +=                                     "---\n";
+
+  return buffered_output;
 }
 
 //exports.handler = function(event, context) {
@@ -83,14 +86,14 @@ function displayStats(title, status, message) {
             }
 
             audit_success++;
-            if (isVerbose) displayStats(url, "success", result);
+            if (isVerbose) console.log (displayStats(url, "success", result));
 
             resolve(result);
           }).on('error', function (error) {
             var message = "error: " + url + ": " + error + "\n";
 
             audit_errors++;
-            if (isVerbose) displayStats(url, "error", error);
+            if (isVerbose) console.log (displayStats(url, "error", error));
 
             resolve (message);
           }).end(function () {
@@ -103,13 +106,14 @@ function displayStats(title, status, message) {
 
 
       Promise.all(results_array).then(function(results) {
-        displayStats("Status", null, null);
-        console.log (results.join(""));
+        var slack_message = "```" + displayStats("Status", null, null) + "``` "
+                          + results.join("");
+        console.log (slack_message);
 
         slack.webhook({
           channel: process.env.SLACK_CHANNEL,
           username: 'SSL Watch',
-          text: results.join(""),
+          text: slack_message,
 
         }, function(err, response) {
           if(err) console.log(err);
