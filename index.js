@@ -37,6 +37,7 @@ slack.setWebhook(process.env.SLACK_WEBHOOK_URL);
               port: 443,
               method: "GET"
             };
+
             https.request(https_options, function(res) {
               console.log (url);
 
@@ -46,11 +47,13 @@ slack.setWebhook(process.env.SLACK_WEBHOOK_URL);
               var days      = days_between(cert_date, date_now);
               var result    = url + " will expire in " + days  + " days.\n";
 
-              console.log ((days <= 30 ? "++" : "") + result);
+              console.log (result);
               resolve(result);
             }).on('error', function (error) {
-              console.log ("error: " + error);
-              resolve ("error: " + error);
+              var message = "error: " + error;
+
+              console.log (message);
+              resolve (message);
             }).end();
           })(sites[link]);
         });
