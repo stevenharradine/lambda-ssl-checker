@@ -17,7 +17,7 @@ var audit_enter        = 0,
     audit_success      = 0,
     audit_errors       = 0,
     audit_expire_soon  = 0,
-    isVerbose          = true;
+    isVerbose          = false;
 function displayStats(title, status, message) {
   var success_plus_errors = audit_errors + audit_success;
   var delta               = success_plus_errors - sites.length;
