@@ -40,8 +40,7 @@ function displayStats(title, status, message) {
   return buffered_output;
 }
 
-//exports.handler = function(event, context) {
-/*
+exports.handler = function(event, context) {
   var bucket = 'telusdigital-lambda';
   var key = 'ssl-check/event.json';
 
@@ -51,11 +50,8 @@ function displayStats(title, status, message) {
           ". Make sure they exist and your bucket is in the same region as this function.");
       context.fail ("Error getting file: " + err)
     } else {
-
-      var sites = JSON.parse(data.Body.toString());
-*/
       var fs = require('fs');
-      var input = JSON.parse(fs.readFileSync('event.json', 'utf8'));
+      var input = JSON.parse(data.Body.toString());
       var sites = input.sites;
       var expire_in = input.expire_in;
       var results_array = [];
@@ -122,9 +118,9 @@ function displayStats(title, status, message) {
           }
         });
       });
-//    }
-//  });
-//};
+    }
+  });
+};
 
 function days_between(date1, date2) {
   // The number of milliseconds in one day
